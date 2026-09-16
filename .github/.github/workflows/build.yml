@@ -1,0 +1,34 @@
+name: Build FocusVolumeControl
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore src/FocusVolumeControl/FocusVolumeControl.csproj
+
+      - name: Build (Release)
+        run: msbuild src/FocusVolumeControl/FocusVolumeControl.csproj /p:Configuration=Release /p:Platform="Any CPU"
+
+      - name: Zip build output
+        run: Compress-Archive -Path "src/FocusVolumeControl/bin/Release/*" -DestinationPath "FocusVolumeControl-build.zip"
+        shell: pwsh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FocusVolumeControl-build
+          path: FocusVolumeControl-build.zip
